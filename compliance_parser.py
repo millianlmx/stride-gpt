@@ -105,12 +105,8 @@ IMPORTANT:
         elif model_provider == "Google AI API":
             genai.configure(api_key=kwargs.get('google_api_key'))
             model = genai.GenerativeModel(kwargs.get('google_model'))
-            response = model.generate_content(
-                contents=[
-                    {"role": "system", "content": "You are a compliance analysis expert. Provide detailed, structured analysis of compliance documentation with precise reference to compliance codes."},
-                    {"role": "user", "content": summary_prompt}
-                ]
-            )
+            # Modified this part to use the correct format
+            response = model.generate_content(summary_prompt)
             return response.text
             
         elif model_provider == "Vertex AI API":
