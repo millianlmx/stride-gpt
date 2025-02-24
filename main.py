@@ -873,8 +873,7 @@ vulnerabilities and prioritising mitigation efforts.
             app_input = st.session_state.get('app_input')
             # Create compliance context and generate prompt
             compliance_context = format_compliance_context(
-                st.session_state.get('compliance_text', ''), 
-                st.session_state.get('used_components', [])
+                st.session_state.get('compliance_text', '')
             )
             
             # Generate the prompt using the create_attack_tree_prompt function
