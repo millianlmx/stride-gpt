@@ -1058,6 +1058,13 @@ vulnerabilities and prioritising mitigation efforts.
                         mermaid_code = get_attack_tree_lm_studio(st.session_state['lm_studio_endpoint'], selected_model, attack_tree_prompt)
                     elif model_provider == "Groq API":
                         mermaid_code = get_attack_tree_groq(groq_api_key, groq_model, attack_tree_prompt)
+                    elif model_provider == "Vertex AI API":
+                        mermaid_code = get_attack_tree_vertex(
+                            vertex_project_id,
+                            vertex_model,
+                            vertex_location,
+                            attack_tree_prompt
+                        )
 
 
                     # Display the generated attack tree code
