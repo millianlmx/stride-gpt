@@ -781,8 +781,7 @@ understanding possible vulnerabilities and attack vectors. Use this tab to gener
         app_input = st.session_state['app_input']  # Retrieve from session state
         # Create compliance context
         compliance_context = format_compliance_context(
-            st.session_state.get('compliance_text', ''), 
-            st.session_state.get('used_components', [])
+            st.session_state.get('compliance_text', '')
         )
     
         # Generate the prompt using the create_prompt function with compliance context
