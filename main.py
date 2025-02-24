@@ -494,12 +494,29 @@ with st.sidebar:
             help="Select from available Vertex AI models. Gemini models are recommended for best results."
         )
 
-        # Add location selection
-        vertex_location = st.selectbox(
-            "Select the location:",
-            ["us-central1", "europe-west4", "asia-east1"],
-            help="Select the region where your Vertex AI resources are located."
-        )
+        # Add location selection based on selected model
+        if "mistral" in vertex_model.lower():
+            vertex_location = st.selectbox(
+                "Select the location:",
+                ["us-central1", "europe-west4"],
+                help="Select the region where your Vertex AI resources are located. These regions are available for Mistral models."
+            )
+        elif "claude" in vertex_model.lower():
+            vertex_location = st.selectbox(
+                "Select the location:",
+                ["us-east5", "europe-west1"],
+                help="Select the region where your Vertex AI resources are located. These regions are available for Claude models."
+            )
+        else:  # Gemini models
+            vertex_location = st.selectbox(
+                "Select the location:",
+                [
+                    "us-central1", "us-east1", "us-west1", 
+                    "europe-west1", "europe-west2", "europe-west3", "europe-west4",
+                    "asia-east1", "asia-southeast1"
+                ],
+                help="Select the region where your Vertex AI resources are located. All regions are available for Gemini models."
+            )
 
     if model_provider == "Mistral API":
         st.markdown(
