@@ -13,36 +13,70 @@ import google.generativeai as genai
 def create_attack_tree_prompt(app_type, authentication, internet_facing, sensitive_data, app_input, compliance_context=""):
     prompt = f"""
 {compliance_context}
+Act as a cyber security expert with more than 20 years experience. Your task is to analyze the application description, codebase, and compliance requirements to create an attack tree and assess if the identified threats are already mitigated in the code.
+
+For each attack vector:
+1. Identify potential attack paths
+2. Analyze the provided codebase to determine if security controls are already in place
+3. Reference specific code sections or patterns that either mitigate or fail to mitigate the threat
+4. Consider compliance requirements when assessing the adequacy of existing controls
+
+When providing the attack tree data, include a "mitigation_status" field for each node indicating:
+- "mitigated": If code shows proper security controls
+- "partial": If some controls exist but are incomplete
+- "missing": If no mitigating controls found
+- "unknown": If insufficient code context to determine
+
 APPLICATION TYPE: {app_type}
 AUTHENTICATION METHODS: {authentication}
 INTERNET FACING: {internet_facing}
 SENSITIVE DATA: {sensitive_data}
-APPLICATION DESCRIPTION: {app_input}
+APPLICATION DESCRIPTION AND CODEBASE:
+{app_input}
+
+Provide the response in JSON format with this structure:
+{{
+    "nodes": [
+        {{
+            "id": "root",
+            "label": "Attack Goal",
+            "mitigation_status": "partial",
+            "code_analysis": "Description of relevant code findings",
+            "children": [...]
+        }}
+    ]
+}}
 """
     return prompt
 
 def convert_tree_to_mermaid(tree_data):
     """
-    Convert structured tree data to Mermaid syntax.
-    
-    Args:
-        tree_data (dict): Dictionary containing the tree structure
-        
-    Returns:
-        str: Mermaid diagram code
+    Convert structured tree data to Mermaid syntax with mitigation status.
     """
     mermaid_lines = ["graph LR"]
     
     def process_node(node, parent_id=None):
         node_id = node["id"]
         node_label = node["label"]
+        mitigation_status = node.get("mitigation_status", "unknown")
         
-        # Add quotes if label contains spaces or parentheses
-        if " " in node_label or "(" in node_label or ")" in node_label:
-            node_label = f'"{node_label}"'
+        # Add mitigation status color coding
+        style_class = {
+            "mitigated": "style %s fill:#90EE90",  # Light green
+            "partial": "style %s fill:#FFD700",     # Gold
+            "missing": "style %s fill:#FFB6C1",     # Light red
+            "unknown": "style %s fill:#D3D3D3"      # Light gray
+        }.get(mitigation_status, "style %s fill:#D3D3D3")
+        
+        # Add quotes if label contains spaces or special characters
+        if " " in node_label or any(c in node_label for c in "()[]{}"):
+            node_label = f'"{node_label}<br/>[{mitigation_status}]"'
+        else:
+            node_label = f"{node_label}<br/>[{mitigation_status}]"
         
         # Add the node definition
         mermaid_lines.append(f'    {node_id}[{node_label}]')
+        mermaid_lines.append(f'    {style_class % node_id}')
         
         # Add connection to parent if exists
         if parent_id:
