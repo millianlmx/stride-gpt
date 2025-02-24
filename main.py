@@ -147,7 +147,7 @@ def get_input(model_provider=None, selected_model=None, google_model=None):
             elif model_provider == "Vertex AI API" and not ("gemini" in vertex_model.lower() or "claude" in vertex_model.lower()):
                 st.info("⚠️ Image analysis is only available with Gemini and Claude models")
             else:
-                uploaded_file = st.file_uploader("Upload architecture diagram", type=["jpg", "jpeg", "png"])
+                uploaded_file = st.file_uploader("Upload architecture diagram", type=["jpg", "jpeg", "png"], key="diagram_uploader")
 
                 if uploaded_file is not None:
                     if (model_provider == "OpenAI API" and not openai_api_key) or \
@@ -827,7 +827,7 @@ understanding possible vulnerabilities and attack vectors. Use this tab to gener
             elif model_provider == "Vertex AI API" and not ("gemini" in vertex_model.lower() or "claude" in vertex_model.lower()):
                 st.info("⚠️ Image analysis is only available with Gemini and Claude models")
             else:
-                uploaded_file = st.file_uploader("Upload architecture diagram", type=["jpg", "jpeg", "png"])
+                uploaded_file = st.file_uploader("Upload architecture diagram", type=["jpg", "jpeg", "png"], key="diagram_uploader_threat_model") 
 
                 if uploaded_file is not None:
                     if (model_provider == "OpenAI API" and not openai_api_key) or \
