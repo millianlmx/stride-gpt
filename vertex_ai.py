@@ -1,10 +1,12 @@
 from google.cloud import aiplatform
+from vertexai.preview.generative_models import GenerativeModel, Part
+import vertexai
 import json
 from typing import Dict
 
 def init_vertex_ai(project_id: str, location: str = "us-central1"):
     """Initialize Vertex AI client"""
-    aiplatform.init(project=project_id, location=location)
+    vertexai.init(project=project_id, location=location)
 
 def get_vertex_response(
     project_id: str,
@@ -17,11 +19,14 @@ def get_vertex_response(
     top_k: int = 40,
 ) -> str:
     """Get response from Vertex AI model"""
-    init_vertex_ai(project_id)
+    # Initialize Vertex AI
+    vertexai.init(project=project_id, location=location)
     
-    # Handle different model types
-    if "gemini" in model_name.lower():
-        model = aiplatform.GenerativeModel(model_name)
+    try:
+        # Initialize the model
+        model = GenerativeModel(model_name)
+        
+        # Generate content
         response = model.generate_content(
             prompt,
             generation_config={
@@ -32,30 +37,23 @@ def get_vertex_response(
             }
         )
         return response.text
-    else:
-        # For other models
-        model = aiplatform.GenerativeModel(model_name)
-        response = model.generate_content(
-            prompt,
-            generation_config={
-                "temperature": temperature,
-                "max_output_tokens": max_output_tokens,
-                "top_p": top_p,
-                "top_k": top_k
-            }
-        )
-        return response.text
+            
+    except Exception as e:
+        print(f"Error in Vertex AI response: {str(e)}")
+        raise
 
 def get_image_analysis_vertex(project_id: str, model_name: str, location: str, prompt: str, base64_image: str) -> str:
     """Get image analysis from Vertex AI."""
-    init_vertex_ai(project_id)
+    vertexai.init(project=project_id, location=location)
     
     try:
+        # Initialize the model
+        model = GenerativeModel(model_name)
+        
         if "gemini" in model_name.lower():
             # For Gemini models
-            model = aiplatform.GenerativeModel(model_name)
             response = model.generate_content(
-                [prompt, {"mime_type": "image/jpeg", "data": base64_image}],
+                contents=[prompt, Part.from_data(data=base64_image, mime_type="image/jpeg")],
                 generation_config={
                     "temperature": 0.2,
                     "max_output_tokens": 1024,
@@ -64,9 +62,8 @@ def get_image_analysis_vertex(project_id: str, model_name: str, location: str, p
             return response.text
         elif "claude" in model_name.lower():
             # For Claude models
-            model = aiplatform.GenerativeModel(model_name)
             response = model.generate_content(
-                [{"text": prompt}, {"image": base64_image}],
+                contents=[Part.from_text(prompt), Part.from_data(data=base64_image, mime_type="image/jpeg")],
                 generation_config={
                     "temperature": 0.2,
                     "max_output_tokens": 1024,
