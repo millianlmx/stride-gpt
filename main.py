@@ -245,9 +245,11 @@ def summarize_file(file_path, content):
 def mermaid(code: str, height: int = 500) -> None:
     components.html(
         f"""
-        <pre class="mermaid" style="height: {height}px;">
-            {code}
-        </pre>
+        <div style="height: 100%; width: 100%;">
+            <pre class="mermaid" style="height: 100%;">
+                {code}
+            </pre>
+        </div>
 
         <script type="module">
             import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
