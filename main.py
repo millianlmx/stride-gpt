@@ -679,38 +679,43 @@ understanding possible vulnerabilities and attack vectors. Use this tab to gener
 
     # If model provider is OpenAI API and the model is gpt-4o or gpt-4o-mini
     with col1:
-        if model_provider == "OpenAI API" and selected_model in ["gpt-4o", "gpt-4o-mini"]:
-            uploaded_file = st.file_uploader("Upload architecture diagram", type=["jpg", "jpeg", "png"])
+        # Allow diagram uploads for both OpenAI and Google AI API
+        if model_provider in ["OpenAI API", "Google AI API"]:
+            if model_provider == "OpenAI API" and selected_model not in ["gpt-4o", "gpt-4o-mini"]:
+                st.info("⚠️ Image analysis is only available with GPT-4 Vision models (gpt-4o or gpt-4o-mini)")
+            else:
+                uploaded_file = st.file_uploader("Upload architecture diagram", type=["jpg", "jpeg", "png"])
 
-            if uploaded_file is not None:
-                if not openai_api_key:
-                    st.error("Please enter your OpenAI API key to analyse the image.")
-                else:
-                    if 'uploaded_file' not in st.session_state or st.session_state.uploaded_file != uploaded_file:
-                        st.session_state.uploaded_file = uploaded_file
-                        with st.spinner("Analysing the uploaded image..."):
-                            def encode_image(uploaded_file):
-                                return base64.b64encode(uploaded_file.read()).decode('utf-8')
+                if uploaded_file is not None:
+                    if (model_provider == "OpenAI API" and not openai_api_key) or \
+                       (model_provider == "Google AI API" and not google_api_key):
+                        st.error(f"Please enter your {model_provider.split()[0]} API key to analyse the image.")
+                    else:
+                        if 'uploaded_file' not in st.session_state or st.session_state.uploaded_file != uploaded_file:
+                            st.session_state.uploaded_file = uploaded_file
+                            with st.spinner("Analysing the uploaded image..."):
+                                def encode_image(uploaded_file):
+                                    return base64.b64encode(uploaded_file.read()).decode('utf-8')
 
-                            base64_image = encode_image(uploaded_file)
+                                base64_image = encode_image(uploaded_file)
+                                image_analysis_prompt = create_image_analysis_prompt()
 
-                            image_analysis_prompt = create_image_analysis_prompt()
+                                try:
+                                    if model_provider == "OpenAI API":
+                                        image_analysis_output = get_image_analysis(openai_api_key, selected_model, image_analysis_prompt, base64_image)
+                                        if image_analysis_output and 'choices' in image_analysis_output and image_analysis_output['choices'][0]['message']['content']:
+                                            image_analysis_content = image_analysis_output['choices'][0]['message']['content']
+                                    elif model_provider == "Google AI API":
+                                        image_analysis_output = get_image_analysis_google(google_api_key, google_model, image_analysis_prompt, base64_image)
+                                        if image_analysis_output:
+                                            image_analysis_content = image_analysis_output
 
-                            try:
-                                image_analysis_output = get_image_analysis(openai_api_key, selected_model, image_analysis_prompt, base64_image)
-                                if image_analysis_output and 'choices' in image_analysis_output and image_analysis_output['choices'][0]['message']['content']:
-                                    image_analysis_content = image_analysis_output['choices'][0]['message']['content']
                                     st.session_state.image_analysis_content = image_analysis_content
                                     # Update app_input session state
                                     st.session_state['app_input'] = image_analysis_content
-                                else:
-                                    st.error("Failed to analyze the image. Please check the API key and try again.")
-                            except KeyError as e:
-                                st.error("Failed to analyze the image. Please check the API key and try again.")
-                                print(f"Error: {e}")
-                            except Exception as e:
-                                st.error("An unexpected error occurred while analyzing the image.")
-                                print(f"Error: {e}")
+                                except Exception as e:
+                                    st.error(f"An error occurred while analyzing the image: {str(e)}")
+                                    print(f"Error: {e}")
 
         # Use the get_input() function to get the application description and GitHub URL
         app_input = get_input()
