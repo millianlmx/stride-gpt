@@ -219,8 +219,8 @@ def get_input(model_provider=None, selected_model=None, google_model=None):
                 if model_provider == "Vertex AI API":
                     kwargs.update({
                         'vertex_project_id': st.session_state.get('vertex_project_id'),
-                        'vertex_model': st.session_state.get('selected_model'),  # Using the selected_model from the selectbox
-                        'vertex_location': vertex_location  # This is already set in the UI
+                        'vertex_model': st.session_state.get('selected_model'),
+                        'vertex_location': vertex_location
                     })
 
                 summary = get_compliance_summary(
@@ -230,7 +230,6 @@ def get_input(model_provider=None, selected_model=None, google_model=None):
                 )
                 st.markdown(summary)
 
-
     # Get any existing manual input that's not from analysis
     existing_input = st.session_state.get('app_input', '')
     if existing_input and not (existing_input.startswith("GITHUB REPOSITORY ANALYSIS:") or existing_input.startswith("ARCHITECTURE DIAGRAM ANALYSIS:")):
@@ -239,7 +238,7 @@ def get_input(model_provider=None, selected_model=None, google_model=None):
     # Text input for additional description
     input_text = st.text_area(
         label="Describe the application to be modelled",
-        value=combined_analysis,
+        value=combined_analysis,  # Use the combined analysis that includes GitHub analysis
         placeholder="Enter your application details...",
         height=300,
         key="app_desc",
