@@ -12,12 +12,13 @@ from utils import process_groq_response, create_reasoning_system_prompt
 def create_mitigations_prompt(threats, compliance_context=""):
     prompt = f"""
 {compliance_context}
-Act as a cyber security expert with more than 20 years experience of implementing security controls for a wide range of applications. Your task is to analyze the provided threats and compliance requirements to suggest appropriate security controls and mitigations.
+Act as a cyber security expert with more than 20 years experience of implementing security controls for a wide range of applications. Your task is to analyze the provided threats, compliance requirements, and codebase to suggest appropriate security controls and mitigations.
 
-For each threat, provide specific mitigations that:
-1. Address the threat directly
-2. Align with the provided compliance requirements by explicitly referencing the requirement IDs (e.g., AA.1.2.3)
-3. Follow security best practices
+For each threat, analyze:
+1. If mitigations are already implemented in the codebase
+2. The completeness and effectiveness of existing controls
+3. What additional mitigations are needed
+4. How mitigations align with compliance requirements
 
 IDENTIFIED THREATS:
 {threats}
@@ -26,13 +27,25 @@ YOUR RESPONSE (in markdown format):
 Please provide a detailed table with the following columns:
 - Threat Type
 - Scenario
-- Suggested Mitigation(s)
+- Implementation Status (choose one: "Implemented", "Partially Implemented", "Not Implemented", "Cannot Determine")
+- Code Analysis (describe any relevant code findings, patterns, or missing controls)
+- Additional Mitigations Needed
 - Compliance Alignment (explicitly reference the compliance requirement IDs from the provided documentation, e.g., AA.1.2.3)
 
-IMPORTANT: When referencing compliance requirements in the "Compliance Alignment" column:
-- Use the exact requirement IDs from the compliance documentation (format: AA.1.2.3)
-- Multiple requirements should be separated by commas
-- Only reference requirements that are actually present in the provided compliance documentation
+IMPORTANT: 
+- For Implementation Status:
+  * "Implemented" - Clear evidence in code of proper security controls
+  * "Partially Implemented" - Some controls exist but are incomplete
+  * "Not Implemented" - No evidence of required controls
+  * "Cannot Determine" - Insufficient code context to assess
+- When referencing compliance requirements:
+  * Use the exact requirement IDs from the compliance documentation (format: AA.1.2.3)
+  * Multiple requirements should be separated by commas
+  * Only reference requirements that are actually present in the provided compliance documentation
+- For Code Analysis:
+  * Reference specific code patterns, functions, or security mechanisms found
+  * Identify gaps or potential weaknesses in implementations
+  * Note any security-relevant code comments or documentation
 """
     return prompt
 
