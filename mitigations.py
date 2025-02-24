@@ -14,11 +14,17 @@ def create_mitigations_prompt(threats, compliance_context=""):
 {compliance_context}
 Act as a cyber security expert with more than 20 years experience of implementing security controls for a wide range of applications. Your task is to analyze the provided threats, compliance requirements, and codebase to suggest appropriate security controls and mitigations.
 
+IMPORTANT - COMPLIANCE REQUIREMENTS:
+1. Only reference compliance requirements that are EXPLICITLY present in the provided compliance documentation above
+2. Do not invent or assume any compliance requirements
+3. Use the exact requirement IDs as they appear in the documentation (format: XX.1.2.3)
+4. If no specific compliance requirement exists for a mitigation, state "No direct compliance requirement"
+
 For each threat, analyze:
 1. If mitigations are already implemented in the codebase
 2. The completeness and effectiveness of existing controls
 3. What additional mitigations are needed
-4. How mitigations align with compliance requirements
+4. How mitigations align with EXPLICITLY STATED compliance requirements
 
 IDENTIFIED THREATS:
 {threats}
@@ -30,7 +36,12 @@ Please provide a detailed table with the following columns:
 - Implementation Status (choose one: "Implemented", "Partially Implemented", "Not Implemented", "Cannot Determine")
 - Code Analysis (describe any relevant code findings, patterns, or missing controls)
 - Additional Mitigations Needed
-- Compliance Alignment (explicitly reference the compliance requirement IDs from the provided documentation, e.g., AA.1.2.3)
+- Compliance Alignment (MUST follow these rules):
+  * ONLY use requirement IDs that appear in the compliance documentation above
+  * Use exact format: XX.1.2.3
+  * If no specific requirement exists, write "No direct compliance requirement"
+  * Do not invent or assume requirements
+  * Multiple requirements should be separated by commas
 
 IMPORTANT: 
 - For Implementation Status:
@@ -38,14 +49,14 @@ IMPORTANT:
   * "Partially Implemented" - Some controls exist but are incomplete
   * "Not Implemented" - No evidence of required controls
   * "Cannot Determine" - Insufficient code context to assess
-- When referencing compliance requirements:
-  * Use the exact requirement IDs from the compliance documentation (format: AA.1.2.3)
-  * Multiple requirements should be separated by commas
-  * Only reference requirements that are actually present in the provided compliance documentation
 - For Code Analysis:
   * Reference specific code patterns, functions, or security mechanisms found
   * Identify gaps or potential weaknesses in implementations
   * Note any security-relevant code comments or documentation
+- For Compliance Alignment:
+  * ONLY reference requirements that are explicitly present in the provided documentation
+  * Do not create or assume requirements that are not in the documentation
+  * Use exact requirement IDs as they appear in the text
 """
     return prompt
 
