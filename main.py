@@ -743,17 +743,20 @@ understanding possible vulnerabilities and attack vectors. Use this tab to gener
 
     # If model provider is OpenAI API and the model is gpt-4o or gpt-4o-mini
     with col1:
-        # Allow diagram uploads for both OpenAI and Google AI API
-        if model_provider in ["OpenAI API", "Google AI API"]:
+        # Allow diagram uploads for OpenAI, Google AI API, and Vertex AI API
+        if model_provider in ["OpenAI API", "Google AI API", "Vertex AI API"]:
             if model_provider == "OpenAI API" and selected_model not in ["gpt-4o", "gpt-4o-mini"]:
                 st.info("⚠️ Image analysis is only available with GPT-4 Vision models (gpt-4o or gpt-4o-mini)")
+            elif model_provider == "Vertex AI API" and not ("gemini" in vertex_model.lower() or "claude" in vertex_model.lower()):
+                st.info("⚠️ Image analysis is only available with Gemini and Claude models")
             else:
                 uploaded_file = st.file_uploader("Upload architecture diagram", type=["jpg", "jpeg", "png"])
 
                 if uploaded_file is not None:
                     if (model_provider == "OpenAI API" and not openai_api_key) or \
-                       (model_provider == "Google AI API" and not google_api_key):
-                        st.error(f"Please enter your {model_provider.split()[0]} API key to analyse the image.")
+                       (model_provider == "Google AI API" and not google_api_key) or \
+                       (model_provider == "Vertex AI API" and not vertex_project_id):
+                        st.error(f"Please enter your {model_provider.split()[0]} credentials to analyse the image.")
                     else:
                         if 'uploaded_file' not in st.session_state or st.session_state.uploaded_file != uploaded_file:
                             st.session_state.uploaded_file = uploaded_file
@@ -771,6 +774,10 @@ understanding possible vulnerabilities and attack vectors. Use this tab to gener
                                             image_analysis_content = image_analysis_output['choices'][0]['message']['content']
                                     elif model_provider == "Google AI API":
                                         image_analysis_output = get_image_analysis_google(google_api_key, google_model, image_analysis_prompt, base64_image)
+                                        if image_analysis_output:
+                                            image_analysis_content = image_analysis_output
+                                    elif model_provider == "Vertex AI API":
+                                        image_analysis_output = get_image_analysis_vertex(vertex_project_id, vertex_model, vertex_location, image_analysis_prompt, base64_image)
                                         if image_analysis_output:
                                             image_analysis_content = image_analysis_output
 
