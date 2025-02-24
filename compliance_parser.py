@@ -43,19 +43,50 @@ def get_compliance_summary(pdf_text: str, model_provider: str, **kwargs) -> str:
     """Get an enhanced summary of compliance documentation using the selected LLM."""
     summary_prompt = f"""
 Analyze the following compliance documentation and provide a clear, structured summary.
-Focus on key security requirements, controls, and trust boundaries.
+Focus on extracting and organizing compliance requirements by their codes and measures.
 
 COMPLIANCE DOCUMENTATION:
 {pdf_text}
 
-Provide a concise summary that highlights:
-1. Key security requirements
-2. Important controls and safeguards
-3. Critical compliance points
-4. Trust boundaries and security zones
-5. Data protection requirements
+Provide a comprehensive analysis that:
 
-Format the summary in clear sections with bullet points for readability.
+1. COMPLIANCE CODES AND MEASURES:
+   - Extract and list all compliance codes (e.g., XX.1.2.3) with their associated measures
+   - Group related measures together
+   - Format each entry as "CODE: Measure Description"
+   - Maintain the exact codes as they appear in the documentation
+
+2. KEY SECURITY REQUIREMENTS:
+   - List the main security requirements
+   - Reference the specific compliance codes that apply
+   - Highlight critical security controls
+
+3. CONTROL CATEGORIES:
+   - Group controls by their primary security function
+   - Include the relevant compliance codes for each category
+   - Explain the purpose of each control category
+
+4. TRUST BOUNDARIES:
+   - Identify system trust boundaries
+   - List applicable security zones
+   - Map compliance requirements to trust boundaries
+
+5. DATA PROTECTION REQUIREMENTS:
+   - Detail data security requirements
+   - Specify data classification levels
+   - List data handling controls with their compliance codes
+
+Format the output in clear sections with:
+- Hierarchical organization
+- Bullet points for readability
+- Clear references to compliance codes
+- Explicit connections between requirements and controls
+
+IMPORTANT:
+- Only include codes and measures that explicitly exist in the documentation
+- Maintain exact code formatting (XX.1.2.3)
+- Do not invent or assume requirements
+- Highlight any critical or high-priority requirements
 """
 
     try:
@@ -63,27 +94,40 @@ Format the summary in clear sections with bullet points for readability.
             client = OpenAI(api_key=kwargs.get('openai_api_key'))
             response = client.chat.completions.create(
                 model=kwargs.get('selected_model'),
-                messages=[{"role": "user", "content": summary_prompt}],
-                max_tokens=1000
+                messages=[
+                    {"role": "system", "content": "You are a compliance analysis expert. Provide detailed, structured analysis of compliance documentation with precise reference to compliance codes."},
+                    {"role": "user", "content": summary_prompt}
+                ],
+                max_tokens=2000
             )
             return response.choices[0].message.content
             
         elif model_provider == "Google AI API":
             genai.configure(api_key=kwargs.get('google_api_key'))
             model = genai.GenerativeModel(kwargs.get('google_model'))
-            response = model.generate_content(summary_prompt)
+            response = model.generate_content(
+                contents=[
+                    {"role": "system", "content": "You are a compliance analysis expert. Provide detailed, structured analysis of compliance documentation with precise reference to compliance codes."},
+                    {"role": "user", "content": summary_prompt}
+                ]
+            )
             return response.text
             
         elif model_provider == "Vertex AI API":
             from vertex_ai import get_vertex_response
-            # Check if all required parameters are present
             if not all([kwargs.get('vertex_project_id'), kwargs.get('vertex_model'), kwargs.get('vertex_location')]):
                 return "Error: Missing required Vertex AI parameters. Please ensure Project ID, Model, and Location are provided."
+            
+            # Add system message for Vertex AI
+            enhanced_prompt = """You are a compliance analysis expert. Provide detailed, structured analysis of compliance documentation with precise reference to compliance codes.
+
+""" + summary_prompt
+            
             return get_vertex_response(
                 project_id=kwargs.get('vertex_project_id'),
                 model_name=kwargs.get('vertex_model'),
                 location=kwargs.get('vertex_location'),
-                prompt=summary_prompt
+                prompt=enhanced_prompt
             )
             
     except Exception as e:
