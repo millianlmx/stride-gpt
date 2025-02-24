@@ -923,7 +923,7 @@ vulnerabilities and prioritising mitigation efforts.
 
                     # Visualise the attack tree using the Mermaid custom component
                     st.write("Attack Tree Diagram Preview:")
-                    mermaid(mermaid_code)
+                    mermaid(mermaid_code, height=800)  # Increased height to 800px
                     
                     col1, col2, col3, col4, col5 = st.columns([1,1,1,1,1])
                     
