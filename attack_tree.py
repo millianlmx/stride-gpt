@@ -10,8 +10,9 @@ import json
 import google.generativeai as genai
 
 # Function to create a prompt to generate an attack tree
-def create_attack_tree_prompt(app_type, authentication, internet_facing, sensitive_data, app_input):
+def create_attack_tree_prompt(app_type, authentication, internet_facing, sensitive_data, app_input, compliance_context=""):
     prompt = f"""
+{compliance_context}
 APPLICATION TYPE: {app_type}
 AUTHENTICATION METHODS: {authentication}
 INTERNET FACING: {internet_facing}

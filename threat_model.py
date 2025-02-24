@@ -28,8 +28,9 @@ def json_to_markdown(threat_model, improvement_suggestions):
     return markdown_output
 
 # Function to create a prompt for generating a threat model
-def create_threat_model_prompt(app_type, authentication, internet_facing, sensitive_data, app_input):
+def create_threat_model_prompt(app_type, authentication, internet_facing, sensitive_data, app_input, compliance_context=""):
     prompt = f"""
+{compliance_context}
 Act as a cyber security expert with more than 20 years experience of using the STRIDE threat modelling methodology to produce comprehensive threat models for a wide range of applications. Your task is to analyze the provided code summary, README content, and application description to produce a list of specific threats for the application.
 
 Pay special attention to the README content as it often provides valuable context about the project's purpose, architecture, and potential security considerations.

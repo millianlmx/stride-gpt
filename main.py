@@ -104,22 +104,53 @@ Please check:
 
 # Function to get user input for the application description and key details
 def get_input():
-    github_url = st.text_input(
-        label="Enter GitHub repository URL (optional)",
-        placeholder="https://github.com/owner/repo",
+    # GitHub repositories
+    github_urls = st.text_area(
+        label="Enter GitHub repository URLs (one per line)",
+        placeholder="https://github.com/owner/repo1\nhttps://github.com/owner/repo2",
         key="github_url",
-        help="Enter the URL of the GitHub repository you want to analyze.",
+        help="Enter the URLs of the GitHub repositories you want to analyze (one per line).",
     )
+    repo_urls = [url.strip() for url in github_urls.split('\n') if url.strip()]
 
-    if github_url and github_url != st.session_state.get('last_analyzed_url', ''):
-        if 'github_api_key' not in st.session_state or not st.session_state['github_api_key']:
-            st.warning("Please enter a GitHub API key to analyze the repository.")
-        else:
-            with st.spinner('Analyzing GitHub repository...'):
-                system_description = analyze_github_repo(github_url)
-                st.session_state['github_analysis'] = system_description
-                st.session_state['last_analyzed_url'] = github_url
-                st.session_state['app_input'] = system_description + "\n\n" + st.session_state.get('app_input', '')
+    # Compliance documentation
+    compliance_files = st.file_uploader(
+        "Upload compliance documentation",
+        type=["pdf"],
+        accept_multiple_files=True,
+        key="compliance"
+    )
+    
+    # Process compliance files and extract components
+    compliance_text = ""
+    used_components = []
+    if compliance_files:
+        compliance_text = extract_text_from_pdfs(compliance_files)
+        st.session_state['compliance_text'] = compliance_text
+        
+        # Extract component names from compliance text (simplified)
+        component_pattern = r"Component:\s*(.+?)(?=\n|$)"
+        available_components = re.findall(component_pattern, compliance_text)
+        
+        used_components = st.multiselect(
+            "Select trusted company components used in this application:",
+            options=available_components
+        )
+
+    # Process GitHub URLs
+    combined_analysis = ""
+    for repo_url in repo_urls:
+        if repo_url and repo_url != st.session_state.get('last_analyzed_url', ''):
+            if 'github_api_key' not in st.session_state or not st.session_state['github_api_key']:
+                st.warning("Please enter a GitHub API key to analyze the repositories.")
+            else:
+                with st.spinner(f'Analyzing GitHub repository: {repo_url}'):
+                    system_description = analyze_github_repo(repo_url)
+                    combined_analysis += system_description + "\n\n"
+                    st.session_state['last_analyzed_url'] = repo_url
+
+    if combined_analysis:
+        st.session_state['app_input'] = combined_analysis + st.session_state.get('app_input', '')
 
     input_text = st.text_area(
         label="Describe the application to be modelled",
@@ -742,8 +773,17 @@ understanding possible vulnerabilities and attack vectors. Use this tab to gener
     # If the Generate Threat Model button is clicked and the user has provided an application description
     if threat_model_submit_button and st.session_state.get('app_input'):
         app_input = st.session_state['app_input']  # Retrieve from session state
-        # Generate the prompt using the create_prompt function
-        threat_model_prompt = create_threat_model_prompt(app_type, authentication, internet_facing, sensitive_data, app_input)
+        # Create compliance context
+        compliance_context = format_compliance_context(
+            st.session_state.get('compliance_text', ''), 
+            st.session_state.get('used_components', [])
+        )
+    
+        # Generate the prompt using the create_prompt function with compliance context
+        threat_model_prompt = create_threat_model_prompt(
+            app_type, authentication, internet_facing, sensitive_data, 
+            app_input, compliance_context
+        )
 
         # Show a spinner while generating the threat model
         with st.spinner("Analysing potential threats..."):
@@ -826,8 +866,17 @@ vulnerabilities and prioritising mitigation efforts.
         # If the Generate Attack Tree button is clicked and the user has provided an application description
         if attack_tree_submit_button and st.session_state.get('app_input'):
             app_input = st.session_state.get('app_input')
+            # Create compliance context and generate prompt
+            compliance_context = format_compliance_context(
+                st.session_state.get('compliance_text', ''), 
+                st.session_state.get('used_components', [])
+            )
+            
             # Generate the prompt using the create_attack_tree_prompt function
-            attack_tree_prompt = create_attack_tree_prompt(app_type, authentication, internet_facing, sensitive_data, app_input)
+            attack_tree_prompt = create_attack_tree_prompt(
+                app_type, authentication, internet_facing, sensitive_data, 
+                app_input, compliance_context
+            )
 
             # Show a spinner while generating the attack tree
             with st.spinner("Generating attack tree..."):
