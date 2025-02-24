@@ -9,14 +9,16 @@ from groq import Groq
 from utils import process_groq_response, create_reasoning_system_prompt
 
 # Function to create a prompt to generate mitigating controls
-def create_mitigations_prompt(threats):
+def create_mitigations_prompt(threats, compliance_context=""):
     prompt = f"""
-Act as a cyber security expert with more than 20 years experience of using the STRIDE threat modelling methodology. Your task is to provide potential mitigations for the threats identified in the threat model. It is very important that your responses are tailored to reflect the details of the threats.
+{compliance_context}
+Act as a cyber security expert with more than 20 years experience of using the STRIDE threat modelling methodology. Your task is to provide potential mitigations for the threats identified in the threat model that align with compliance requirements. It is very important that your responses are tailored to reflect the details of the threats.
 
 Your output should be in the form of a markdown table with the following columns:
     - Column A: Threat Type
     - Column B: Scenario
     - Column C: Suggested Mitigation(s)
+    - Column D: Compliance Alignment (how the mitigation aligns with compliance requirements)
 
 Below is the list of identified threats:
 {threats}
