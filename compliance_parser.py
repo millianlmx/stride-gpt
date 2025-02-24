@@ -76,16 +76,19 @@ Format the summary in clear sections with bullet points for readability.
             
         elif model_provider == "Vertex AI API":
             from vertex_ai import get_vertex_response
+            # Check if all required parameters are present
+            if not all([kwargs.get('vertex_project_id'), kwargs.get('vertex_model'), kwargs.get('vertex_location')]):
+                return "Error: Missing required Vertex AI parameters. Please ensure Project ID, Model, and Location are provided."
             return get_vertex_response(
-                kwargs.get('vertex_project_id'),
-                kwargs.get('vertex_model'),
-                kwargs.get('vertex_location'),
-                summary_prompt
+                project_id=kwargs.get('vertex_project_id'),
+                model_name=kwargs.get('vertex_model'),
+                location=kwargs.get('vertex_location'),
+                prompt=summary_prompt
             )
             
     except Exception as e:
         print(f"Error generating compliance summary: {str(e)}")
-        return "Error generating summary. Please check the logs for details."
+        return f"Error generating summary: {str(e)}"
 
 def format_compliance_context(pdf_text: str) -> str:
     """Format compliance information for LLM prompt"""

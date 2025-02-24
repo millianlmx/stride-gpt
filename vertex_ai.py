@@ -19,16 +19,16 @@ def get_vertex_response(
     top_k: int = 40,
 ) -> str:
     """Get response from Vertex AI model"""
-    # Initialize Vertex AI
-    vertexai.init(project=project_id, location=location)
-    
     try:
+        # Initialize Vertex AI
+        vertexai.init(project=project_id, location=location)
+        
         # Initialize the model
         model = GenerativeModel(model_name)
         
         # Generate content
         response = model.generate_content(
-            prompt,
+            contents=prompt,  # Use 'contents' instead of just prompt
             generation_config={
                 "temperature": temperature,
                 "max_output_tokens": max_output_tokens,
@@ -36,7 +36,12 @@ def get_vertex_response(
                 "top_k": top_k
             }
         )
-        return response.text
+        
+        # Check if response has content
+        if response and hasattr(response, 'text'):
+            return response.text
+        else:
+            raise ValueError("No response content received from Vertex AI")
             
     except Exception as e:
         print(f"Error in Vertex AI response: {str(e)}")
