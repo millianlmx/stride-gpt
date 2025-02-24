@@ -42,4 +42,7 @@ def format_compliance_context(pdf_text: str) -> str:
     return f"""
 COMPANY COMPLIANCE RULES:
 {pdf_text}
+
+Note: Any identified things above are extracted from company documentation.
+The LLM should analyze the full context to determine security implications and trust levels.
 """
