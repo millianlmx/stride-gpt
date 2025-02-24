@@ -12,18 +12,26 @@ from utils import process_groq_response, create_reasoning_system_prompt
 def create_mitigations_prompt(threats, compliance_context=""):
     prompt = f"""
 {compliance_context}
-Act as a cyber security expert with more than 20 years experience of using the STRIDE threat modelling methodology. Your task is to provide potential mitigations for the threats identified in the threat model that align with compliance requirements. It is very important that your responses are tailored to reflect the details of the threats.
+Act as a cyber security expert with more than 20 years experience of implementing security controls for a wide range of applications. Your task is to analyze the provided threats and compliance requirements to suggest appropriate security controls and mitigations.
 
-Your output should be in the form of a markdown table with the following columns:
-    - Column A: Threat Type
-    - Column B: Scenario
-    - Column C: Suggested Mitigation(s)
-    - Column D: Compliance Alignment (explicitly reference the compliance requirement IDs from the provided documentation, e.g., AA.1.2.3)
+First, provide a summary of the compliance requirements that are relevant to the identified threats.
 
-Below is the list of identified threats:
+Then, for each threat, provide specific mitigations that:
+1. Address the threat directly
+2. Align with the provided compliance requirements by explicitly referencing the requirement IDs (e.g., AA.1.2.3)
+3. Follow security best practices
+
+IDENTIFIED THREATS:
 {threats}
 
-YOUR RESPONSE (do not wrap in a code block):
+YOUR RESPONSE (in markdown format):
+First provide a section titled "## Relevant Compliance Requirements Summary" that summarizes the key compliance requirements relevant to these threats.
+
+Then provide a detailed table with the following columns:
+- Threat Type
+- Scenario
+- Suggested Mitigation(s)
+- Compliance Alignment (explicitly reference the compliance requirement IDs from the provided documentation, e.g., AA.1.2.3)
 
 IMPORTANT: When referencing compliance requirements in the "Compliance Alignment" column:
 - Use the exact requirement IDs from the compliance documentation (format: AA.1.2.3)
