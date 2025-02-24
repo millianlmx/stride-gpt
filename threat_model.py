@@ -31,21 +31,28 @@ def json_to_markdown(threat_model, improvement_suggestions):
 def create_threat_model_prompt(app_type, authentication, internet_facing, sensitive_data, app_input, compliance_context=""):
     prompt = f"""
 {compliance_context}
-Act as a cyber security expert with more than 20 years experience of using the STRIDE threat modelling methodology to produce comprehensive threat models for a wide range of applications. Your task is to analyze the provided code summary, README content, and application description to produce a list of specific threats for the application.
+Act as a cyber security expert with more than 20 years experience of using the STRIDE threat modelling methodology to produce comprehensive threat models for a wide range of applications. Your task is to analyze the provided code summary, README content, application description, and compliance documentation to produce a list of specific threats for the application.
 
-Pay special attention to the README content as it often provides valuable context about the project's purpose, architecture, and potential security considerations.
+Pay special attention to:
+1. The README content as it provides valuable context about the project's purpose and architecture
+2. The compliance documentation which defines security requirements and controls that must be considered
+3. Any potential conflicts between the application design and compliance requirements
 
-For each of the STRIDE categories (Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, and Elevation of Privilege), list multiple (3 or 4) credible threats if applicable. Each threat scenario should provide a credible scenario in which the threat could occur in the context of the application. It is very important that your responses are tailored to reflect the details you are given.
+For each of the STRIDE categories (Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, and Elevation of Privilege), list multiple (3 or 4) credible threats if applicable. Each threat scenario should:
+- Provide a credible scenario in which the threat could occur in the context of the application
+- Consider how the threat might violate specific compliance requirements
+- Identify potential compliance gaps or conflicts
 
 When providing the threat model, use a JSON formatted response with the keys "threat_model" and "improvement_suggestions". Under "threat_model", include an array of objects with the keys "Threat Type", "Scenario", and "Potential Impact". 
 
-Under "improvement_suggestions", include an array of strings that suggest what additional information or details the user could provide to make the threat model more comprehensive and accurate in the next iteration. Focus on identifying gaps in the provided application description that, if filled, would enable a more detailed and precise threat analysis. For example:
+Under "improvement_suggestions", include an array of strings that suggest what additional information or details the user could provide to make the threat model more comprehensive and accurate in the next iteration. Focus on identifying gaps in:
 - Missing architectural details that would help identify more specific threats
 - Unclear authentication flows that need more detail
 - Incomplete data flow descriptions
 - Missing technical stack information
 - Unclear system boundaries or trust zones
 - Incomplete description of sensitive data handling
+- Areas where compliance requirements need clarification
 
 Do not provide general security recommendations - focus only on what additional information would help create a better threat model.
 
