@@ -107,6 +107,9 @@ Please check:
 
 # Function to get user input for the application description and key details
 def get_input(model_provider=None, selected_model=None, google_model=None):
+    # Initialize combined analysis
+    combined_analysis = ""
+
     # GitHub repositories
     github_urls = st.text_area(
         label="Enter GitHub repository URLs (one per line)",
@@ -172,27 +175,31 @@ def get_input(model_provider=None, selected_model=None, google_model=None):
                     github_analysis += system_description + "\n\n"
                     st.session_state['last_analyzed_url'] = repo_url
 
-    # Initialize combined analysis
-    combined_analysis = ""
-
     # Add GitHub analysis to combined analysis if available
     if github_analysis:
         combined_analysis += "GITHUB REPOSITORY ANALYSIS:\n" + github_analysis
 
     # Add image analysis content if available
     if 'image_analysis_content' in st.session_state:
+        # Don't overwrite the previous analysis, append to it
         combined_analysis += "\nARCHITECTURE DIAGRAM ANALYSIS:\n" + st.session_state.image_analysis_content + "\n\n"
+
+    # Get any existing manual input that's not from analysis
+    existing_input = st.session_state.get('app_input', '')
+    if existing_input and not (existing_input.startswith("GITHUB REPOSITORY ANALYSIS:") or existing_input.startswith("ARCHITECTURE DIAGRAM ANALYSIS:")):
+        combined_analysis += "\nADDITIONAL DESCRIPTION:\n" + existing_input
 
     # Text input for additional description
     input_text = st.text_area(
         label="Describe the application to be modelled",
-        value=combined_analysis + st.session_state.get('app_input', ''),
+        value=combined_analysis,
         placeholder="Enter your application details...",
         height=300,
         key="app_desc",
         help="Please provide a detailed description of the application, including the purpose of the application, the technologies used, and any other relevant information.",
     )
 
+    # Update session state with the complete input
     st.session_state['app_input'] = input_text
 
     return input_text
