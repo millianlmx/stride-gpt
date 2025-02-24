@@ -14,9 +14,7 @@ def create_mitigations_prompt(threats, compliance_context=""):
 {compliance_context}
 Act as a cyber security expert with more than 20 years experience of implementing security controls for a wide range of applications. Your task is to analyze the provided threats and compliance requirements to suggest appropriate security controls and mitigations.
 
-First, provide a summary of the compliance requirements that are relevant to the identified threats.
-
-Then, for each threat, provide specific mitigations that:
+For each threat, provide specific mitigations that:
 1. Address the threat directly
 2. Align with the provided compliance requirements by explicitly referencing the requirement IDs (e.g., AA.1.2.3)
 3. Follow security best practices
@@ -25,9 +23,7 @@ IDENTIFIED THREATS:
 {threats}
 
 YOUR RESPONSE (in markdown format):
-First provide a section titled "## Relevant Compliance Requirements Summary" that summarizes the key compliance requirements relevant to these threats.
-
-Then provide a detailed table with the following columns:
+Please provide a detailed table with the following columns:
 - Threat Type
 - Scenario
 - Suggested Mitigation(s)
