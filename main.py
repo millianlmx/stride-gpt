@@ -792,9 +792,9 @@ understanding possible vulnerabilities and attack vectors. Use this tab to gener
     # If the Generate Threat Model button is clicked and the user has provided an application description
     if threat_model_submit_button and st.session_state.get('app_input'):
         app_input = st.session_state['app_input']  # Retrieve from session state
-        # Create compliance context
+        # Create compliance context with full PDF text
         compliance_context = format_compliance_context(
-            st.session_state.get('compliance_text', '')
+            st.session_state.get('compliance_text', '')  # Use full PDF text
         )
     
         # Generate the prompt using the create_prompt function with compliance context
@@ -884,9 +884,9 @@ vulnerabilities and prioritising mitigation efforts.
         # If the Generate Attack Tree button is clicked and the user has provided an application description
         if attack_tree_submit_button and st.session_state.get('app_input'):
             app_input = st.session_state.get('app_input')
-            # Create compliance context and generate prompt
+            # Create compliance context with full PDF text
             compliance_context = format_compliance_context(
-                st.session_state.get('compliance_text', '')
+                st.session_state.get('compliance_text', '')  # Use full PDF text
             )
             
             # Generate the prompt using the create_attack_tree_prompt function
