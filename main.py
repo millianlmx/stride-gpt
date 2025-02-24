@@ -490,7 +490,7 @@ with st.sidebar:
         vertex_model = st.selectbox(
             "Select the model you would like to use:",
             [
-                "google/gemini-2.0-flash-001",
+                "gemini-2.0-flash-001",
                 "claude-3-5-sonnet-v2@20241022",
                 "mistralai/mistral-large-2411@001"
             ],
