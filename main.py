@@ -137,16 +137,26 @@ def get_input(model_provider=None, selected_model=None, google_model=None):
                 st.markdown(f"- {file.name}")
             st.markdown("### Compliance Documentation Summary")
             with st.spinner("Generating compliance summary..."):
+                # Prepare kwargs based on model provider
+                kwargs = {
+                    'openai_api_key': st.session_state.get('openai_api_key'),
+                    'selected_model': selected_model if 'selected_model' in locals() else None,
+                    'google_api_key': st.session_state.get('google_api_key'),
+                    'google_model': google_model if 'google_model' in locals() else None,
+                }
+                
+                # Add Vertex AI specific parameters if it's the selected provider
+                if model_provider == "Vertex AI API":
+                    kwargs.update({
+                        'vertex_project_id': st.session_state.get('vertex_project_id'),
+                        'vertex_model': st.session_state.get('selected_model'),  # Using the selected_model from the selectbox
+                        'vertex_location': vertex_location  # This is already set in the UI
+                    })
+
                 summary = get_compliance_summary(
                     compliance_text,
                     model_provider,
-                    openai_api_key=st.session_state.get('openai_api_key'),
-                    selected_model=selected_model,
-                    google_api_key=st.session_state.get('google_api_key'),
-                    google_model=google_model if 'google_model' in locals() else None,
-                    vertex_project_id=vertex_project_id if 'vertex_project_id' in locals() else None,
-                    vertex_model=vertex_model if 'vertex_model' in locals() else None,
-                    vertex_location=vertex_location if 'vertex_location' in locals() else None
+                    **kwargs
                 )
                 st.markdown(summary)
 
