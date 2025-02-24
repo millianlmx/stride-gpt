@@ -110,14 +110,81 @@ def get_input(model_provider=None, selected_model=None, google_model=None):
     # Initialize combined analysis
     combined_analysis = ""
 
-    # GitHub repositories
-    github_urls = st.text_area(
-        label="Enter GitHub repository URLs (one per line)",
-        placeholder="https://github.com/owner/repo1\nhttps://github.com/owner/repo2",
-        key="github_url",
-        help="Enter the URLs of the GitHub repositories you want to analyze (one per line).",
-    )
-    repo_urls = [url.strip() for url in github_urls.split('\n') if url.strip()]
+    # Create two columns for inputs
+    col1, col2 = st.columns(2)
+
+    with col1:
+        # GitHub repositories
+        github_urls = st.text_area(
+            label="Enter GitHub repository URLs (one per line)",
+            placeholder="https://github.com/owner/repo1\nhttps://github.com/owner/repo2",
+            key="github_url",
+            help="Enter the URLs of the GitHub repositories you want to analyze (one per line).",
+        )
+        repo_urls = [url.strip() for url in github_urls.split('\n') if url.strip()]
+
+        # Process GitHub URLs
+        github_analysis = ""
+        for repo_url in repo_urls:
+            if repo_url and repo_url != st.session_state.get('last_analyzed_url', ''):
+                if 'github_api_key' not in st.session_state or not st.session_state['github_api_key']:
+                    st.warning("Please enter a GitHub API key to analyze the repositories.")
+                else:
+                    with st.spinner(f'Analyzing GitHub repository: {repo_url}'):
+                        system_description = analyze_github_repo(repo_url)
+                        github_analysis += system_description + "\n\n"
+                        st.session_state['last_analyzed_url'] = repo_url
+
+        # Add GitHub analysis to combined analysis if available
+        if github_analysis:
+            combined_analysis += "GITHUB REPOSITORY ANALYSIS:\n" + github_analysis
+
+    with col2:
+        # Allow diagram uploads for OpenAI, Google AI API, and Vertex AI API
+        if model_provider in ["OpenAI API", "Google AI API", "Vertex AI API"]:
+            if model_provider == "OpenAI API" and selected_model not in ["gpt-4o", "gpt-4o-mini"]:
+                st.info("⚠️ Image analysis is only available with GPT-4 Vision models (gpt-4o or gpt-4o-mini)")
+            elif model_provider == "Vertex AI API" and not ("gemini" in vertex_model.lower() or "claude" in vertex_model.lower()):
+                st.info("⚠️ Image analysis is only available with Gemini and Claude models")
+            else:
+                uploaded_file = st.file_uploader("Upload architecture diagram", type=["jpg", "jpeg", "png"])
+
+                if uploaded_file is not None:
+                    if (model_provider == "OpenAI API" and not openai_api_key) or \
+                       (model_provider == "Google AI API" and not google_api_key) or \
+                       (model_provider == "Vertex AI API" and not vertex_project_id):
+                        st.error(f"Please enter your {model_provider.split()[0]} credentials to analyse the image.")
+                    else:
+                        if 'uploaded_file' not in st.session_state or st.session_state.uploaded_file != uploaded_file:
+                            st.session_state.uploaded_file = uploaded_file
+                            with st.spinner("Analysing the uploaded image..."):
+                                def encode_image(uploaded_file):
+                                    return base64.b64encode(uploaded_file.read()).decode('utf-8')
+
+                                base64_image = encode_image(uploaded_file)
+                                image_analysis_prompt = create_image_analysis_prompt()
+
+                                try:
+                                    if model_provider == "OpenAI API":
+                                        image_analysis_output = get_image_analysis(openai_api_key, selected_model, image_analysis_prompt, base64_image)
+                                        if image_analysis_output and 'choices' in image_analysis_output and image_analysis_output['choices'][0]['message']['content']:
+                                            image_analysis_content = image_analysis_output['choices'][0]['message']['content']
+                                    elif model_provider == "Google AI API":
+                                        image_analysis_output = get_image_analysis_google(google_api_key, google_model, image_analysis_prompt, base64_image)
+                                        if image_analysis_output:
+                                            image_analysis_content = image_analysis_output
+                                    elif model_provider == "Vertex AI API":
+                                        image_analysis_output = get_image_analysis_vertex(vertex_project_id, vertex_model, vertex_location, image_analysis_prompt, base64_image)
+                                        if image_analysis_output:
+                                            image_analysis_content = image_analysis_output
+
+                                    # Add image analysis to combined analysis
+                                    if 'image_analysis_content' in locals():
+                                        combined_analysis += "\nARCHITECTURE DIAGRAM ANALYSIS:\n" + image_analysis_content + "\n\n"
+                                        st.session_state.image_analysis_content = image_analysis_content
+                                except Exception as e:
+                                    st.error(f"An error occurred while analyzing the image: {str(e)}")
+                                    print(f"Error: {e}")
 
     # Compliance documentation
     compliance_files = st.file_uploader(
@@ -163,26 +230,6 @@ def get_input(model_provider=None, selected_model=None, google_model=None):
                 )
                 st.markdown(summary)
 
-    # Process GitHub URLs
-    github_analysis = ""
-    for repo_url in repo_urls:
-        if repo_url and repo_url != st.session_state.get('last_analyzed_url', ''):
-            if 'github_api_key' not in st.session_state or not st.session_state['github_api_key']:
-                st.warning("Please enter a GitHub API key to analyze the repositories.")
-            else:
-                with st.spinner(f'Analyzing GitHub repository: {repo_url}'):
-                    system_description = analyze_github_repo(repo_url)
-                    github_analysis += system_description + "\n\n"
-                    st.session_state['last_analyzed_url'] = repo_url
-
-    # Add GitHub analysis to combined analysis if available
-    if github_analysis:
-        combined_analysis += "GITHUB REPOSITORY ANALYSIS:\n" + github_analysis
-
-    # Add image analysis content if available
-    if 'image_analysis_content' in st.session_state:
-        # Don't overwrite the previous analysis, append to it
-        combined_analysis += "\nARCHITECTURE DIAGRAM ANALYSIS:\n" + st.session_state.image_analysis_content + "\n\n"
 
     # Get any existing manual input that's not from analysis
     existing_input = st.session_state.get('app_input', '')
