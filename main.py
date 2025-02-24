@@ -161,7 +161,7 @@ def get_input(model_provider=None, selected_model=None, google_model=None):
                 st.markdown(summary)
 
     # Process GitHub URLs
-    combined_analysis = ""
+    github_analysis = ""
     for repo_url in repo_urls:
         if repo_url and repo_url != st.session_state.get('last_analyzed_url', ''):
             if 'github_api_key' not in st.session_state or not st.session_state['github_api_key']:
@@ -169,15 +169,24 @@ def get_input(model_provider=None, selected_model=None, google_model=None):
             else:
                 with st.spinner(f'Analyzing GitHub repository: {repo_url}'):
                     system_description = analyze_github_repo(repo_url)
-                    combined_analysis += system_description + "\n\n"
+                    github_analysis += system_description + "\n\n"
                     st.session_state['last_analyzed_url'] = repo_url
 
-    if combined_analysis:
-        st.session_state['app_input'] = combined_analysis + st.session_state.get('app_input', '')
+    # Initialize combined analysis
+    combined_analysis = ""
 
+    # Add GitHub analysis to combined analysis if available
+    if github_analysis:
+        combined_analysis += "GITHUB REPOSITORY ANALYSIS:\n" + github_analysis
+
+    # Add image analysis content if available
+    if 'image_analysis_content' in st.session_state:
+        combined_analysis += "\nARCHITECTURE DIAGRAM ANALYSIS:\n" + st.session_state.image_analysis_content + "\n\n"
+
+    # Text input for additional description
     input_text = st.text_area(
         label="Describe the application to be modelled",
-        value=st.session_state.get('app_input', ''),
+        value=combined_analysis + st.session_state.get('app_input', ''),
         placeholder="Enter your application details...",
         height=300,
         key="app_desc",
