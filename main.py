@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 from openai import OpenAI
 import requests
 import json
+from google.cloud import aiplatform
 
 from threat_model import create_threat_model_prompt, get_threat_model, get_threat_model_azure, get_threat_model_google, get_threat_model_mistral, get_threat_model_ollama, get_threat_model_anthropic, get_threat_model_lm_studio, get_threat_model_groq, json_to_markdown, get_image_analysis, get_image_analysis_google, create_image_analysis_prompt
 from attack_tree import create_attack_tree_prompt, get_attack_tree, get_attack_tree_azure, get_attack_tree_mistral, get_attack_tree_ollama, get_attack_tree_anthropic, get_attack_tree_lm_studio, get_attack_tree_groq, get_attack_tree_google
@@ -461,6 +462,43 @@ with st.sidebar:
             "Select the model you would like to use:",
             ["gemini-2.0-flash", "gemini-1.5-pro"],
             key="selected_model",
+        )
+
+    if model_provider == "Vertex AI API":
+        st.markdown(
+        """
+    1. Enter your [Google Cloud Project ID](https://console.cloud.google.com/project) and chosen model below 🔑
+    2. Provide details of the application that you would like to threat model  📝
+    3. Generate a threat list, attack tree and/or mitigating controls for your application 🚀
+    """
+    )
+        # Add Project ID input field
+        vertex_project_id = st.text_input(
+            "Enter your Google Cloud Project ID:",
+            value=st.session_state.get('vertex_project_id', ''),
+            help="You can find your Project ID in the Google Cloud Console.",
+            type="password"
+        )
+        if vertex_project_id:
+            st.session_state['vertex_project_id'] = vertex_project_id
+
+        # Add model selection input field
+        vertex_model = st.selectbox(
+            "Select the model you would like to use:",
+            [
+                "google/gemini-2.0-flash-001",
+                "claude-3-5-sonnet-v2@20241022",
+                "mistralai/mistral-large-2411@001"
+            ],
+            key="selected_model",
+            help="Select from available Vertex AI models. Gemini models are recommended for best results."
+        )
+
+        # Add location selection
+        vertex_location = st.selectbox(
+            "Select the location:",
+            ["us-central1", "europe-west4", "asia-east1"],
+            help="Select the region where your Vertex AI resources are located."
         )
 
     if model_provider == "Mistral API":
