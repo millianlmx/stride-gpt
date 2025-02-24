@@ -180,14 +180,12 @@ Do not invent or assume any requirements.
         print(f"Error extracting compliance titles: {str(e)}")
         return f"Error extracting titles: {str(e)}"
 
-def format_compliance_context(pdf_text: str, model_provider: str = None, **kwargs) -> str:
+def format_compliance_context(pdf_text: str, model_provider: str = None, compliance_summary: str = "", **kwargs) -> str:
     """Format compliance information for LLM prompt"""
     
-    # Get compliance summary and titles if model provider is specified
-    compliance_summary = ""
-    titles = ""
-    if model_provider:
-        # Get the summary first
+    # Use provided summary if available, otherwise compute it
+    if not compliance_summary and model_provider:
+        # Get the summary
         compliance_summary = get_compliance_summary(pdf_text, model_provider, **kwargs)
         if compliance_summary and not compliance_summary.startswith("Error"):
             compliance_summary = "\nCOMPLIANCE SUMMARY:\n" + compliance_summary + "\n"
@@ -196,6 +194,9 @@ def format_compliance_context(pdf_text: str, model_provider: str = None, **kwarg
         titles = get_compliance_titles(pdf_text, model_provider, **kwargs)
         if titles and not titles.startswith("Error"):
             titles = "\nCOMPLIANCE REQUIREMENTS INDEX:\n" + titles + "\n"
+    else:
+        compliance_summary = "\nCOMPLIANCE SUMMARY:\n" + compliance_summary + "\n"
+        titles = ""  # We'll skip titles if using pre-computed summary
     
     return f"""
 COMPANY COMPLIANCE RULES:

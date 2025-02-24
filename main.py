@@ -235,6 +235,8 @@ def get_input(model_provider=None, selected_model=None, google_model=None):
                     model_provider,
                     **kwargs
                 )
+                # Store the summary in session state
+                st.session_state['compliance_summary'] = summary
                 st.markdown(summary)
 
     # Get any existing manual input that's not from analysis
@@ -935,9 +937,11 @@ understanding possible vulnerabilities and attack vectors. Use this tab to gener
     # If the Generate Threat Model button is clicked and the user has provided an application description
     if threat_model_submit_button and st.session_state.get('app_input'):
         app_input = st.session_state['app_input']  # Retrieve from session state
-        # Create compliance context with full PDF text
+        # Create compliance context with stored summary
         compliance_context = format_compliance_context(
-            st.session_state.get('compliance_text', '')  # Use full PDF text
+            st.session_state.get('compliance_text', ''),
+            model_provider,
+            compliance_summary=st.session_state.get('compliance_summary', '')
         )
     
         # Generate the prompt using the create_prompt function with compliance context
