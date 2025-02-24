@@ -141,7 +141,7 @@ def get_input(model_provider=None, selected_model=None, google_model=None):
                     openai_api_key=st.session_state.get('openai_api_key'),
                     selected_model=selected_model,
                     google_api_key=st.session_state.get('google_api_key'),
-                    google_model=google_model if 'google_model' in locals() else None
+                    google_model=google_model
                 )
                 st.markdown(summary)
 
