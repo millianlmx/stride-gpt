@@ -74,7 +74,14 @@ Format the summary in clear sections with bullet points for readability.
             response = model.generate_content(summary_prompt)
             return response.text
             
-        # Add other providers as needed
+        elif model_provider == "Vertex AI API":
+            from vertex_ai import get_vertex_response
+            return get_vertex_response(
+                kwargs.get('vertex_project_id'),
+                kwargs.get('vertex_model'),
+                kwargs.get('vertex_location'),
+                summary_prompt
+            )
             
     except Exception as e:
         print(f"Error generating compliance summary: {str(e)}")

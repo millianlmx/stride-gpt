@@ -142,7 +142,10 @@ def get_input(model_provider=None, selected_model=None, google_model=None):
                     openai_api_key=st.session_state.get('openai_api_key'),
                     selected_model=selected_model,
                     google_api_key=st.session_state.get('google_api_key'),
-                    google_model=google_model
+                    google_model=google_model if 'google_model' in locals() else None,
+                    vertex_project_id=vertex_project_id if 'vertex_project_id' in locals() else None,
+                    vertex_model=vertex_model if 'vertex_model' in locals() else None,
+                    vertex_location=vertex_location if 'vertex_location' in locals() else None
                 )
                 st.markdown(summary)
 
