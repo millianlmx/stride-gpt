@@ -190,7 +190,36 @@ def get_image_analysis_vertex(project_id: str, model_name: str, location: str, p
         raise
 
 def get_image_analysis_google(api_key, model_name, prompt, base64_image):
-
+    """Get image analysis from Google AI API."""
+    genai.configure(api_key=api_key)
+    
+    # Initialize the model
+    model = genai.GenerativeModel(model_name)
+    
+    try:
+        # Create the image part from base64
+        image_part = {
+            "mime_type": "image/jpeg",
+            "data": base64_image
+        }
+        
+        # Generate content with both text prompt and image
+        response = model.generate_content(
+            [prompt, image_part],
+            safety_settings={
+                'DANGEROUS': 'block_only_high'
+            }
+        )
+        
+        # Extract the text content from the response
+        if response.candidates:
+            return response.candidates[0].content.parts[0].text
+        else:
+            raise ValueError("No response received from Google AI API")
+            
+    except Exception as e:
+        print(f"Error in Google AI image analysis: {str(e)}")
+        raise
 
 # Function to get threat model from the GPT response.
 def get_threat_model(api_key, model_name, prompt):
