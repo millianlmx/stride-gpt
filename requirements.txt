@@ -1,5 +1,6 @@
 anthropic
 google.generativeai
+google-cloud-aiplatform
 mistralai>=1.0.0
 openai
 pyGithub
