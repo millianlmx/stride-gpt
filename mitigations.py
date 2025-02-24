@@ -18,12 +18,17 @@ Your output should be in the form of a markdown table with the following columns
     - Column A: Threat Type
     - Column B: Scenario
     - Column C: Suggested Mitigation(s)
-    - Column D: Compliance Alignment (how the mitigation aligns with compliance requirements)
+    - Column D: Compliance Alignment (explicitly reference the compliance requirement IDs from the provided documentation, e.g., AA.1.2.3)
 
 Below is the list of identified threats:
 {threats}
 
 YOUR RESPONSE (do not wrap in a code block):
+
+IMPORTANT: When referencing compliance requirements in the "Compliance Alignment" column:
+- Use the exact requirement IDs from the compliance documentation (format: AA.1.2.3)
+- Multiple requirements should be separated by commas
+- Only reference requirements that are actually present in the provided compliance documentation
 """
     return prompt
 
