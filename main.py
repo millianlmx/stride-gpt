@@ -122,21 +122,22 @@ def get_input():
         key="compliance"
     )
     
-    # Process compliance files and extract components
+    # Process compliance files and show summary
     compliance_text = ""
-    used_components = []
     if compliance_files:
         compliance_text = extract_text_from_pdfs(compliance_files)
         st.session_state['compliance_text'] = compliance_text
         
-        # Extract component names from compliance text (simplified)
-        component_pattern = r"Component:\s*(.+?)(?=\n|$)"
-        available_components = re.findall(component_pattern, compliance_text)
-        
-        used_components = st.multiselect(
-            "Select trusted company components used in this application:",
-            options=available_components
-        )
+        # Show summary of uploaded compliance documentation
+        with st.expander("View Compliance Documentation Summary", expanded=True):
+            st.markdown("### Uploaded Compliance Documentation")
+            for file in compliance_files:
+                st.markdown(f"- {file.name}")
+            st.markdown("### Documentation Content Preview")
+            # Show first 500 characters of compliance text as preview
+            preview_length = 500
+            preview_text = compliance_text[:preview_length] + "..." if len(compliance_text) > preview_length else compliance_text
+            st.text_area("Content Preview", value=preview_text, height=150, disabled=True)
 
     # Process GitHub URLs
     combined_analysis = ""
