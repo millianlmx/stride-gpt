@@ -183,16 +183,23 @@ Do not invent or assume any requirements.
 def format_compliance_context(pdf_text: str, model_provider: str = None, **kwargs) -> str:
     """Format compliance information for LLM prompt"""
     
-    # Get compliance titles if model provider is specified
+    # Get compliance summary and titles if model provider is specified
+    compliance_summary = ""
     titles = ""
     if model_provider:
+        # Get the summary first
+        compliance_summary = get_compliance_summary(pdf_text, model_provider, **kwargs)
+        if compliance_summary and not compliance_summary.startswith("Error"):
+            compliance_summary = "\nCOMPLIANCE SUMMARY:\n" + compliance_summary + "\n"
+        
+        # Get the titles
         titles = get_compliance_titles(pdf_text, model_provider, **kwargs)
         if titles and not titles.startswith("Error"):
             titles = "\nCOMPLIANCE REQUIREMENTS INDEX:\n" + titles + "\n"
     
     return f"""
 COMPANY COMPLIANCE RULES:
-{pdf_text}
+{compliance_summary}
 {titles}
 Note: Any identified things above are extracted from company documentation.
 The LLM should analyze the full context to determine security implications and trust levels.
