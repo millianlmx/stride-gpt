@@ -133,11 +133,17 @@ def get_input():
             st.markdown("### Uploaded Compliance Documentation")
             for file in compliance_files:
                 st.markdown(f"- {file.name}")
-            st.markdown("### Documentation Content Preview")
-            # Show first 500 characters of compliance text as preview
-            preview_length = 500
-            preview_text = compliance_text[:preview_length] + "..." if len(compliance_text) > preview_length else compliance_text
-            st.text_area("Content Preview", value=preview_text, height=150, disabled=True)
+            st.markdown("### Compliance Documentation Summary")
+            with st.spinner("Generating compliance summary..."):
+                summary = get_compliance_summary(
+                    compliance_text,
+                    model_provider,
+                    openai_api_key=st.session_state.get('openai_api_key'),
+                    selected_model=selected_model,
+                    google_api_key=st.session_state.get('google_api_key'),
+                    google_model=google_model if 'google_model' in locals() else None
+                )
+                st.markdown(summary)
 
     # Process GitHub URLs
     combined_analysis = ""
