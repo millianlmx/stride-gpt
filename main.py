@@ -7,6 +7,7 @@ from github import Github
 from collections import defaultdict
 import re
 import os
+from compliance_parser import extract_text_from_pdfs, format_compliance_context
 from dotenv import load_dotenv
 from openai import OpenAI
 import requests
