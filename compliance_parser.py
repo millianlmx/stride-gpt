@@ -90,12 +90,70 @@ Format the summary in clear sections with bullet points for readability.
         print(f"Error generating compliance summary: {str(e)}")
         return f"Error generating summary: {str(e)}"
 
-def format_compliance_context(pdf_text: str) -> str:
+def get_compliance_titles(pdf_text: str, model_provider: str, **kwargs) -> List[str]:
+    """Extract compliance requirement titles and IDs from the documentation using LLM."""
+    titles_prompt = f"""
+Analyze the following compliance documentation and extract all requirement titles and their IDs.
+Focus on finding patterns like 'XX.1.2.3' followed by their titles.
+
+COMPLIANCE DOCUMENTATION:
+{pdf_text}
+
+Extract and list all requirement IDs and their titles in this format:
+ID: Title
+Example:
+AA.1.2.3: Password Complexity Requirements
+BB.3.4.5: Access Control Mechanisms
+
+Only include requirements that are explicitly present in the documentation.
+Do not invent or assume any requirements.
+"""
+
+    try:
+        if model_provider == "OpenAI API":
+            client = OpenAI(api_key=kwargs.get('openai_api_key'))
+            response = client.chat.completions.create(
+                model=kwargs.get('selected_model'),
+                messages=[{"role": "user", "content": titles_prompt}],
+                max_tokens=1000
+            )
+            return response.choices[0].message.content
+            
+        elif model_provider == "Google AI API":
+            genai.configure(api_key=kwargs.get('google_api_key'))
+            model = genai.GenerativeModel(kwargs.get('google_model'))
+            response = model.generate_content(titles_prompt)
+            return response.text
+            
+        elif model_provider == "Vertex AI API":
+            from vertex_ai import get_vertex_response
+            if not all([kwargs.get('vertex_project_id'), kwargs.get('vertex_model'), kwargs.get('vertex_location')]):
+                return "Error: Missing required Vertex AI parameters."
+            return get_vertex_response(
+                project_id=kwargs.get('vertex_project_id'),
+                model_name=kwargs.get('vertex_model'),
+                location=kwargs.get('vertex_location'),
+                prompt=titles_prompt
+            )
+            
+    except Exception as e:
+        print(f"Error extracting compliance titles: {str(e)}")
+        return f"Error extracting titles: {str(e)}"
+
+def format_compliance_context(pdf_text: str, model_provider: str = None, **kwargs) -> str:
     """Format compliance information for LLM prompt"""
+    
+    # Get compliance titles if model provider is specified
+    titles = ""
+    if model_provider:
+        titles = get_compliance_titles(pdf_text, model_provider, **kwargs)
+        if titles and not titles.startswith("Error"):
+            titles = "\nCOMPLIANCE REQUIREMENTS INDEX:\n" + titles + "\n"
+    
     return f"""
 COMPANY COMPLIANCE RULES:
 {pdf_text}
-
+{titles}
 Note: Any identified things above are extracted from company documentation.
 The LLM should analyze the full context to determine security implications and trust levels.
 """

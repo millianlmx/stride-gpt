@@ -1036,7 +1036,15 @@ vulnerabilities and prioritising mitigation efforts.
             app_input = st.session_state.get('app_input')
             # Create compliance context with full PDF text
             compliance_context = format_compliance_context(
-                st.session_state.get('compliance_text', '')  # Use full PDF text
+                st.session_state.get('compliance_text', ''),
+                model_provider,
+                vertex_project_id=st.session_state.get('vertex_project_id'),
+                vertex_model=vertex_model if 'vertex_model' in locals() else None,
+                vertex_location=vertex_location if 'vertex_location' in locals() else None,
+                openai_api_key=st.session_state.get('openai_api_key'),
+                selected_model=selected_model if 'selected_model' in locals() else None,
+                google_api_key=st.session_state.get('google_api_key'),
+                google_model=google_model if 'google_model' in locals() else None
             )
             
             # Generate the prompt using the create_attack_tree_prompt function
