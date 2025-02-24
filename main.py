@@ -232,13 +232,11 @@ def get_input(model_provider=None, selected_model=None, google_model=None):
 
     # Get any existing manual input that's not from analysis
     existing_input = st.session_state.get('app_input', '')
-    if existing_input and not (existing_input.startswith("GITHUB REPOSITORY ANALYSIS:") or existing_input.startswith("ARCHITECTURE DIAGRAM ANALYSIS:")):
-        combined_analysis += "\nADDITIONAL DESCRIPTION:\n" + existing_input
 
     # Text input for additional description
     input_text = st.text_area(
         label="Describe the application to be modelled",
-        value=combined_analysis,  # Use the combined analysis that includes GitHub analysis
+        value=combined_analysis or existing_input,  # Use combined_analysis if available, otherwise use existing input
         placeholder="Enter your application details...",
         height=300,
         key="app_desc",
