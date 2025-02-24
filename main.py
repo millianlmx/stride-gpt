@@ -104,7 +104,7 @@ Please check:
         return ["local-model"]
 
 # Function to get user input for the application description and key details
-def get_input():
+def get_input(model_provider=None, selected_model=None, google_model=None):
     # GitHub repositories
     github_urls = st.text_area(
         label="Enter GitHub repository URLs (one per line)",
@@ -727,7 +727,11 @@ understanding possible vulnerabilities and attack vectors. Use this tab to gener
                                     print(f"Error: {e}")
 
         # Use the get_input() function to get the application description and GitHub URL
-        app_input = get_input()
+        app_input = get_input(
+            model_provider=model_provider,
+            selected_model=selected_model if 'selected_model' in locals() else None,
+            google_model=google_model if 'google_model' in locals() else None
+        )
         # Update session state only if the text area content has changed
         if app_input != st.session_state['app_input']:
             st.session_state['app_input'] = app_input
