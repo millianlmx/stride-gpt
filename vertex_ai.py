@@ -1,5 +1,6 @@
 from google.cloud import aiplatform
 import json
+from typing import Dict
 
 def init_vertex_ai(project_id: str, location: str = "us-central1"):
     """Initialize Vertex AI client"""
