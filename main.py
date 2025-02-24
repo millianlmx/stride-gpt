@@ -962,6 +962,13 @@ understanding possible vulnerabilities and attack vectors. Use this tab to gener
                         model_output = get_threat_model_lm_studio(st.session_state['lm_studio_endpoint'], selected_model, threat_model_prompt)
                     elif model_provider == "Groq API":
                         model_output = get_threat_model_groq(groq_api_key, groq_model, threat_model_prompt)
+                    elif model_provider == "Vertex AI API":
+                        model_output = get_threat_model_vertex(
+                            vertex_project_id,
+                            vertex_model,
+                            vertex_location,
+                            threat_model_prompt
+                        )
 
                     # Access the threat model and improvement suggestions from the parsed content
                     threat_model = model_output.get("threat_model", [])
