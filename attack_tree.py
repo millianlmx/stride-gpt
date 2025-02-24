@@ -31,7 +31,7 @@ def convert_tree_to_mermaid(tree_data):
     Returns:
         str: Mermaid diagram code
     """
-    mermaid_lines = ["graph TD"]
+    mermaid_lines = ["graph LR"]
     
     def process_node(node, parent_id=None):
         node_id = node["id"]
