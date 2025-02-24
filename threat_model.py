@@ -155,37 +155,41 @@ def get_image_analysis(api_key, model_name, prompt, base64_image):
     print(f"Response content: {response.content}")  # Log the response content for further inspection
     return None
 
-def get_image_analysis_google(api_key, model_name, prompt, base64_image):
-    """Get image analysis from Google AI API."""
-    genai.configure(api_key=api_key)
-    
-    # Initialize the model
-    model = genai.GenerativeModel(model_name)
+def get_image_analysis_vertex(project_id: str, model_name: str, location: str, prompt: str, base64_image: str) -> str:
+    """Get image analysis from Vertex AI."""
+    aiplatform.init(project=project_id, location=location)
     
     try:
-        # Create the image part from base64
-        image_part = {
-            "mime_type": "image/jpeg",
-            "data": base64_image
-        }
-        
-        # Generate content with both text prompt and image
-        response = model.generate_content(
-            [prompt, image_part],
-            safety_settings={
-                'DANGEROUS': 'block_only_high'
-            }
-        )
-        
-        # Extract the text content from the response
-        if response.candidates:
-            return response.candidates[0].content.parts[0].text
+        if "gemini" in model_name.lower():
+            # For Gemini models
+            model = aiplatform.GenerativeModel(model_name)
+            response = model.generate_content(
+                [prompt, {"mime_type": "image/jpeg", "data": base64_image}],
+                generation_config={
+                    "temperature": 0.2,
+                    "max_output_tokens": 1024,
+                }
+            )
+            return response.text
+        elif "claude" in model_name.lower():
+            # For Claude models
+            model = aiplatform.GenerativeModel(model_name)
+            response = model.generate_content(
+                [{"text": prompt}, {"image": base64_image}],
+                generation_config={
+                    "temperature": 0.2,
+                    "max_output_tokens": 1024,
+                }
+            )
+            return response.text
         else:
-            raise ValueError("No response received from Google AI API")
+            raise ValueError(f"Model {model_name} does not support image analysis")
             
     except Exception as e:
-        print(f"Error in Google AI image analysis: {str(e)}")
+        print(f"Error in Vertex AI image analysis: {str(e)}")
         raise
+
+def get_image_analysis_google(api_key, model_name, prompt, base64_image):
 
 
 # Function to get threat model from the GPT response.
