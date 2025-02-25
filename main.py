@@ -1171,8 +1171,16 @@ the security posture of the application and protect against potential attacks.
         if 'threat_model' in st.session_state and st.session_state['threat_model']:
             # Convert the threat_model data into a Markdown list
             threats_markdown = json_to_markdown(st.session_state['threat_model'], [])
-            # Generate the prompt using the create_mitigations_prompt function
-            mitigations_prompt = create_mitigations_prompt(threats_markdown)
+            
+            # Create compliance context with stored summary
+            compliance_context = format_compliance_context(
+                st.session_state.get('compliance_text', ''),
+                model_provider,
+                compliance_summary=st.session_state.get('compliance_summary', '')
+            )
+            
+            # Generate the prompt using the create_mitigations_prompt function with compliance context
+            mitigations_prompt = create_mitigations_prompt(threats_markdown, compliance_context)
 
             # Show a spinner while suggesting mitigations
             with st.spinner("Suggesting mitigations..."):

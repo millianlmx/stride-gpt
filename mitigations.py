@@ -19,18 +19,6 @@ IMPORTANT - COMPLIANCE REQUIREMENTS:
 2. Do not invent or assume any compliance requirements
 3. Use the exact requirement IDs as they appear in the documentation (format: XX.1.2.3)
 4. If no specific compliance requirement exists for a mitigation, state "No direct compliance requirement"
-5. For each scenario, create a meaningful tag [TAG] based on the main subject:
-   * Use uppercase letters and hyphens
-   * Make it descriptive of the main threat subject
-   * Examples:
-     - [PASSWORD-POLICY] for password-related scenarios
-     - [AUTH-BYPASS] for authentication bypass scenarios
-     - [DATA-LEAK] for data leakage scenarios
-     - [PRIV-ESC] for privilege escalation
-     - [ACCESS-CONTROL] for access control issues
-     - [SESSION-MGMT] for session management
-     - [INPUT-VALID] for input validation
-     - [CRYPTO] for cryptographic issues
 
 For each threat, analyze:
 1. If mitigations are already implemented in the codebase
@@ -44,18 +32,16 @@ IDENTIFIED THREATS:
 YOUR RESPONSE (in markdown format):
 Please provide a detailed table with the following columns:
 - Threat Type
-- Scenario (tagged with meaningful [TAG])
+- Scenario
 - Implementation Status (choose one: "Implemented", "Partially Implemented", "Not Implemented", "Cannot Determine")
 - Code Analysis (describe any relevant code findings, patterns, or missing controls)
 - Additional Mitigations Needed
 - Compliance Alignment (MUST follow these rules):
-  * Start with the scenario tag: "[TAG]:"
   * ONLY use requirement IDs that appear in the compliance documentation above
   * Use exact format: XX.1.2.3
-  * If no specific requirement exists, write "[TAG]: No direct compliance requirement"
+  * If no specific requirement exists, write "No direct compliance requirement"
   * Do not invent or assume requirements
   * Multiple requirements should be separated by commas
-  * Each scenario tag should have its own line if multiple scenarios are referenced
 
 IMPORTANT: 
 - For Implementation Status:
@@ -71,13 +57,12 @@ IMPORTANT:
   * ONLY reference requirements that are explicitly present in the provided documentation
   * Do not create or assume requirements that are not in the documentation
   * Use exact requirement IDs as they appear in the text
-  * Always prefix with the relevant scenario tag
 
 Example format:
 | Threat Type | Scenario | Implementation Status | Code Analysis | Additional Mitigations Needed | Compliance Alignment |
 |-------------|----------|----------------------|---------------|------------------------------|---------------------|
-| Authentication | [PASSWORD-POLICY] Weak password policy allows brute force attacks | Not Implemented | No password complexity checks found in code | Implement password complexity requirements | [PASSWORD-POLICY]: AA.1.2.3, AA.1.2.4 |
-| Access Control | [ADMIN-ACCESS] Unauthorized access to admin functions | Partially Implemented | Basic role checks present but no MFA | Add MFA for admin access | [ADMIN-ACCESS]: BB.3.4.5 |
+| Authentication | Weak password policy allows brute force attacks | Not Implemented | No password complexity checks found in code | Implement password complexity requirements | AA.1.2.3, AA.1.2.4 |
+| Access Control | Unauthorized access to admin functions | Partially Implemented | Basic role checks present but no MFA | Add MFA for admin access | BB.3.4.5 |
 """
     return prompt
 
