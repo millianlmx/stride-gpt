@@ -15,6 +15,7 @@ import json
 from google.cloud import aiplatform
 
 from threat_model import create_threat_model_prompt, get_threat_model, get_threat_model_azure, get_threat_model_google, get_threat_model_mistral, get_threat_model_ollama, get_threat_model_anthropic, get_threat_model_lm_studio, get_threat_model_groq, json_to_markdown, get_image_analysis, get_image_analysis_google, create_image_analysis_prompt
+from utils import clean_markdown_for_display
 from vertex_ai import (
     get_image_analysis_vertex, 
     get_threat_model_vertex, 
@@ -1214,7 +1215,8 @@ the security posture of the application and protect against potential attacks.
                             )
 
                         # Display the suggested mitigations in Markdown
-                        st.markdown(mitigations_markdown)
+                        cleaned_markdown = clean_markdown_for_display(mitigations_markdown)
+                        st.markdown(cleaned_markdown)
                         break  # Exit the loop if successful
                     except Exception as e:
                         retry_count += 1
@@ -1229,7 +1231,7 @@ the security posture of the application and protect against potential attacks.
             # Add a button to allow the user to download the mitigations as a Markdown file
             st.download_button(
                 label="Download Mitigations",
-                data=mitigations_markdown,
+                data=cleaned_markdown,
                 file_name="mitigations.md",
                 mime="text/markdown",
             )
@@ -1298,12 +1300,13 @@ focusing on the most critical threats first. Use this tab to perform a DREAD ris
                             st.warning(f"Error generating DREAD risk assessment. Retrying attempt {retry_count+1}/{max_retries}...")
             # Convert the DREAD assessment JSON to Markdown
             dread_assessment_markdown = dread_json_to_markdown(dread_assessment)
-            # Display the DREAD assessment in Markdown
-            st.markdown(dread_assessment_markdown)
+            # Clean and display the DREAD assessment in Markdown
+            cleaned_markdown = clean_markdown_for_display(dread_assessment_markdown)
+            st.markdown(cleaned_markdown)
             # Add a button to allow the user to download the test cases as a Markdown file
             st.download_button(
                 label="Download DREAD Risk Assessment",
-                data=dread_assessment_markdown,
+                data=cleaned_markdown,
                 file_name="dread_assessment.md",
                 mime="text/markdown",
             )

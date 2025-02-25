@@ -1,6 +1,36 @@
 import re
 import json
 
+def clean_markdown_for_display(markdown_text):
+    """
+    Clean and prepare markdown for display in Streamlit.
+    Ensures proper line breaks, escapes special characters if needed,
+    and fixes common markdown formatting issues.
+    """
+    if not markdown_text:
+        return ""
+        
+    # Ensure table formatting is correct
+    lines = markdown_text.split('\n')
+    for i, line in enumerate(lines):
+        # Fix table separator line (the line with dashes after header)
+        if line.startswith('|') and all(c in '|-:' for c in line.replace('|', '')):
+            # Count columns in header
+            if i > 0 and lines[i-1].startswith('|'):
+                header_columns = lines[i-1].count('|') - 1
+                # Recreate the separator line with correct number of columns
+                lines[i] = '|' + '---|' * header_columns
+    
+    # Rejoin lines
+    markdown_text = '\n'.join(lines)
+    
+    # Ensure proper spacing in table cells for better rendering
+    import re
+    markdown_text = re.sub(r'\|(\S)', r'| \1', markdown_text)  # Add space after |
+    markdown_text = re.sub(r'(\S)\|', r'\1 |', markdown_text)  # Add space before |
+    
+    return markdown_text
+
 def extract_deepseek_reasoning(response_text):
     """
     Extract reasoning and final output from DeepSeek R1 model response.
