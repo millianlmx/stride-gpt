@@ -97,7 +97,19 @@ def get_threat_model_vertex(project_id: str, model_name: str, location: str, pro
         if not response:
             print("Empty response from Vertex AI")
             return {"threat_model": [], "improvement_suggestions": []}
+        
+        # Clean up Markdown code blocks if present
+        if response.strip().startswith("```json") or response.strip().startswith("```"):
+            # Extract content between triple backticks
+            import re
+            code_block_match = re.search(r'```(?:json)?\s*\n(.*?)```', response, re.DOTALL)
+            if code_block_match:
+                response = code_block_match.group(1).strip()
+            else:
+                # If regex fails, try a simpler approach: remove starting and ending backticks
+                response = response.replace("```json", "").replace("```", "").strip()
             
+        # Now parse the JSON    
         return json.loads(response)
     except json.JSONDecodeError as e:
         print(f"Error parsing JSON response: {e}")
