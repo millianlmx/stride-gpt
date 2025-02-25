@@ -986,15 +986,36 @@ understanding possible vulnerabilities and attack vectors. Use this tab to gener
                             threat_model_prompt
                         )
 
+                    # Check if we have a valid response
+                    if model_output is None:
+                        raise ValueError("Received None response from model")
+                
                     # Access the threat model and improvement suggestions from the parsed content
                     threat_model = model_output.get("threat_model", [])
                     improvement_suggestions = model_output.get("improvement_suggestions", [])
+            
+                    # Check if we have valid content
+                    if not threat_model:
+                        print("Warning: Empty threat model received")
+                        if retry_count < max_retries - 1:
+                            retry_count += 1
+                            st.warning(f"Received empty threat model. Retrying attempt {retry_count+1}/{max_retries}...")
+                            continue
+                        else:
+                            # Use default values on last attempt
+                            threat_model = []
+                            improvement_suggestions = []
 
                     # Save the threat model to the session state for later use in mitigations
                     st.session_state['threat_model'] = threat_model
                     break  # Exit the loop if successful
                 except Exception as e:
                     retry_count += 1
+                    # Print detailed error for debugging
+                    import traceback
+                    print(f"Error generating threat model: {str(e)}")
+                    print(traceback.format_exc())
+            
                     if retry_count == max_retries:
                         st.error(f"Error generating threat model after {max_retries} attempts: {e}")
                         threat_model = []

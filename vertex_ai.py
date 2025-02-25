@@ -41,11 +41,14 @@ def get_vertex_response(
         if response and hasattr(response, 'text'):
             return response.text
         else:
-            raise ValueError("No response content received from Vertex AI")
+            print("No text attribute in Vertex AI response")
+            return ""
             
     except Exception as e:
         print(f"Error in Vertex AI response: {str(e)}")
-        raise
+        import traceback
+        traceback.print_exc()
+        return ""  # Return empty string instead of raising
 
 def get_image_analysis_vertex(project_id: str, model_name: str, location: str, prompt: str, base64_image: str) -> str:
     """Get image analysis from Vertex AI."""
@@ -84,12 +87,25 @@ def get_image_analysis_vertex(project_id: str, model_name: str, location: str, p
 
 def get_threat_model_vertex(project_id: str, model_name: str, location: str, prompt: str) -> Dict:
     """Get threat model from Vertex AI"""
-    response = get_vertex_response(project_id, model_name, location, prompt)
     try:
+        response = get_vertex_response(project_id, model_name, location, prompt)
+        
+        # Debug output
+        print(f"Vertex AI response type: {type(response)}")
+        print(f"Response preview: {response[:200] if response else 'Empty response'}")
+        
+        if not response:
+            print("Empty response from Vertex AI")
+            return {"threat_model": [], "improvement_suggestions": []}
+            
         return json.loads(response)
     except json.JSONDecodeError as e:
         print(f"Error parsing JSON response: {e}")
-        raise
+        print(f"Raw response: {response if 'response' in locals() else 'No response'}")
+        return {"threat_model": [], "improvement_suggestions": []}
+    except Exception as e:
+        print(f"Error in Vertex AI threat model generation: {str(e)}")
+        return {"threat_model": [], "improvement_suggestions": []}
 
 def get_attack_tree_vertex(project_id: str, model_name: str, location: str, prompt: str) -> str:
     """Get attack tree from Vertex AI"""
