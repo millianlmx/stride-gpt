@@ -170,14 +170,58 @@ def get_threat_model_vertex(project_id: str, model_name: str, location: str, pro
 
 def get_attack_tree_vertex(project_id: str, model_name: str, location: str, prompt: str) -> str:
     """Get attack tree from Vertex AI"""
-    response = get_vertex_response(project_id, model_name, location, prompt)
+    # Increase max output tokens to avoid truncation
+    response = get_vertex_response(
+        project_id, 
+        model_name, 
+        location, 
+        prompt,
+        max_output_tokens=4096
+    )
+    
+    # Debug output
+    print(f"Vertex AI attack tree response type: {type(response)}")
+    print(f"Response preview: {response[:200] if response else 'Empty response'}")
+    
+    if not response:
+        print("Empty response from Vertex AI")
+        return "graph TD\nA[Empty Response] --> B[Please try again]"
+    
+    # Try different parsing approaches
     try:
+        # Check if response is in a code block (```json or ```mermaid)
+        if "```" in response:
+            # Extract the content from inside code blocks
+            import re
+            
+            # First try to find JSON code blocks
+            json_match = re.search(r'```(?:json)?\s*([\s\S]*?)```', response, re.DOTALL)
+            if json_match:
+                try:
+                    tree_data = json.loads(json_match.group(1).strip())
+                    from attack_tree import convert_tree_to_mermaid
+                    return convert_tree_to_mermaid(tree_data)
+                except json.JSONDecodeError:
+                    # Not valid JSON, might be direct Mermaid code
+                    pass
+            
+            # If not valid JSON, look for Mermaid blocks or extract using utility
+            from utils import extract_mermaid_code
+            return extract_mermaid_code(response)
+        
+        # If no code blocks, try parsing as raw JSON
         tree_data = json.loads(response)
         from attack_tree import convert_tree_to_mermaid
         return convert_tree_to_mermaid(tree_data)
+    
     except json.JSONDecodeError:
+        # If all JSON parsing fails, try extracting Mermaid
         from utils import extract_mermaid_code
         return extract_mermaid_code(response)
+    except Exception as e:
+        print(f"Error processing attack tree: {str(e)}")
+        # Return a simple fallback diagram
+        return "graph TD\nA[Error] --> B[Processing failed]"
 
 def get_mitigations_vertex(project_id: str, model_name: str, location: str, prompt: str) -> str:
     """Get mitigations from Vertex AI"""
