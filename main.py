@@ -1369,7 +1369,8 @@ scenarios.
                             )
 
                         # Display the suggested mitigations in Markdown
-                        st.markdown(test_cases_markdown)
+                        cleaned_markdown = clean_markdown_for_display(test_cases_markdown)
+                        st.markdown(cleaned_markdown)
                         break  # Exit the loop if successful
                     except Exception as e:
                         retry_count += 1
@@ -1384,7 +1385,7 @@ scenarios.
             # Add a button to allow the user to download the test cases as a Markdown file
             st.download_button(
                 label="Download Test Cases",
-                data=test_cases_markdown,
+                data=cleaned_markdown,
                 file_name="test_cases.md",
                 mime="text/markdown",
             )
