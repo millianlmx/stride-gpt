@@ -183,25 +183,43 @@ Do not invent or assume any requirements.
 def format_compliance_context(pdf_text: str, model_provider: str = None, compliance_summary: str = "", **kwargs) -> str:
     """Format compliance information for LLM prompt"""
     
-    # Use provided summary if available, otherwise compute it
-    if not compliance_summary and model_provider:
-        # Get the summary
-        compliance_summary = get_compliance_summary(pdf_text, model_provider, **kwargs)
-        if compliance_summary and not compliance_summary.startswith("Error"):
-            compliance_summary = "\nCOMPLIANCE SUMMARY:\n" + compliance_summary + "\n"
-        
-        # Get the titles
-        titles = get_compliance_titles(pdf_text, model_provider, **kwargs)
-        if titles and not titles.startswith("Error"):
-            titles = "\nCOMPLIANCE REQUIREMENTS INDEX:\n" + titles + "\n"
-    else:
-        compliance_summary = "\nCOMPLIANCE SUMMARY:\n" + compliance_summary + "\n"
-        titles = ""  # We'll skip titles if using pre-computed summary
+    # Initialize with empty components
+    formatted_summary = ""
+    titles = ""
     
-    return f"""
+    # Use provided summary if available, otherwise compute it
+    if compliance_summary:
+        # Using pre-computed summary
+        formatted_summary = "\nCOMPLIANCE SUMMARY:\n" + compliance_summary + "\n"
+    elif pdf_text and model_provider:
+        try:
+            # Get the summary
+            computed_summary = get_compliance_summary(pdf_text, model_provider, **kwargs)
+            if computed_summary and not computed_summary.startswith("Error"):
+                # Truncate if necessary to avoid token limits
+                max_length = 3000
+                if len(computed_summary) > max_length:
+                    computed_summary = computed_summary[:max_length] + "... (truncated)"
+                formatted_summary = "\nCOMPLIANCE SUMMARY:\n" + computed_summary + "\n"
+                
+                # Only get titles if we have a valid summary and space
+                try:
+                    titles_text = get_compliance_titles(pdf_text, model_provider, **kwargs)
+                    if titles_text and not titles_text.startswith("Error"):
+                        titles = "\nCOMPLIANCE REQUIREMENTS INDEX:\n" + titles_text + "\n"
+                except Exception as e:
+                    print(f"Error extracting compliance titles: {str(e)}")
+        except Exception as e:
+            print(f"Error computing compliance summary: {str(e)}")
+    
+    # Only return context if we have actual content
+    if formatted_summary or titles:
+        return f"""
 COMPANY COMPLIANCE RULES:
-{compliance_summary}
+{formatted_summary}
 {titles}
-Note: Any identified things above are extracted from company documentation.
-The LLM should analyze the full context to determine security implications and trust levels.
+Note: Any identified requirements above are extracted from company documentation.
+The system should analyze these requirements when generating security recommendations.
 """
+    else:
+        return ""  # Return empty string if no compliance context available
