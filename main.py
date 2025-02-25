@@ -865,8 +865,13 @@ understanding possible vulnerabilities and attack vectors. Use this tab to gener
                                             image_analysis_content = image_analysis_output
 
                                     st.session_state.image_analysis_content = image_analysis_content
-                                    # Update app_input session state
-                                    st.session_state['app_input'] = image_analysis_content
+                                    # Update app_input session state by appending rather than replacing
+                                    if 'app_input' in st.session_state and st.session_state['app_input']:
+                                        # Check if the image analysis is already in the app_input to avoid duplication
+                                        if "ARCHITECTURE DIAGRAM ANALYSIS:" not in st.session_state['app_input']:
+                                            st.session_state['app_input'] += "\n\nARCHITECTURE DIAGRAM ANALYSIS:\n" + image_analysis_content
+                                    else:
+                                        st.session_state['app_input'] = "ARCHITECTURE DIAGRAM ANALYSIS:\n" + image_analysis_content
                                 except Exception as e:
                                     st.error(f"An error occurred while analyzing the image: {str(e)}")
                                     print(f"Error: {e}")
