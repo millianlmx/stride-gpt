@@ -88,7 +88,14 @@ def get_image_analysis_vertex(project_id: str, model_name: str, location: str, p
 def get_threat_model_vertex(project_id: str, model_name: str, location: str, prompt: str) -> Dict:
     """Get threat model from Vertex AI"""
     try:
-        response = get_vertex_response(project_id, model_name, location, prompt)
+        # Increase max_output_tokens to avoid truncation
+        response = get_vertex_response(
+            project_id, 
+            model_name, 
+            location, 
+            prompt,
+            max_output_tokens=4096  # Increase this value
+        )
         
         # Debug output
         print(f"Vertex AI response type: {type(response)}")
@@ -102,19 +109,61 @@ def get_threat_model_vertex(project_id: str, model_name: str, location: str, pro
         if response.strip().startswith("```json") or response.strip().startswith("```"):
             # Extract content between triple backticks
             import re
-            code_block_match = re.search(r'```(?:json)?\s*\n(.*?)```', response, re.DOTALL)
+            code_block_match = re.search(r'```(?:json)?\s*\n(.*?)(?:```|$)', response, re.DOTALL)
             if code_block_match:
                 response = code_block_match.group(1).strip()
             else:
                 # If regex fails, try a simpler approach: remove starting and ending backticks
                 response = response.replace("```json", "").replace("```", "").strip()
+        
+        # Try to parse the JSON, handling potential truncation
+        try:
+            return json.loads(response)
+        except json.JSONDecodeError as e:
+            print(f"Initial JSON parse error: {e}")
+            # Try to extract as much valid JSON as possible
+            # Add closing brackets to truncated JSON
+            import re
             
-        # Now parse the JSON    
-        return json.loads(response)
-    except json.JSONDecodeError as e:
-        print(f"Error parsing JSON response: {e}")
-        print(f"Raw response: {response if 'response' in locals() else 'No response'}")
-        return {"threat_model": [], "improvement_suggestions": []}
+            # Count opened brackets
+            open_braces = response.count('{')
+            close_braces = response.count('}')
+            open_brackets = response.count('[')
+            close_brackets = response.count(']')
+            
+            # Add missing closing brackets
+            if open_braces > close_braces:
+                response += '}' * (open_braces - close_braces)
+            if open_brackets > close_brackets:
+                response += ']' * (open_brackets - close_brackets)
+            
+            # Try to salvage threat_model array even if JSON is corrupted
+            threat_model = []
+            try:
+                # Look for valid threats in the response
+                threat_pattern = r'{\s*"Threat Type":\s*"([^"]+)",\s*"Scenario":\s*"([^"]+)",\s*"Potential Impact":\s*"([^"]+)"\s*}'
+                matches = re.findall(threat_pattern, response)
+                
+                for match in matches:
+                    threat_model.append({
+                        "Threat Type": match[0],
+                        "Scenario": match[1],
+                        "Potential Impact": match[2]
+                    })
+                
+                # If we found threats, return them
+                if threat_model:
+                    print(f"Recovered {len(threat_model)} threats from incomplete JSON")
+                    return {
+                        "threat_model": threat_model,
+                        "improvement_suggestions": []
+                    }
+            except Exception as e2:
+                print(f"Error during recovery: {e2}")
+            
+            # If all recovery attempts fail, return empty model
+            return {"threat_model": [], "improvement_suggestions": []}
+                    
     except Exception as e:
         print(f"Error in Vertex AI threat model generation: {str(e)}")
         return {"threat_model": [], "improvement_suggestions": []}
